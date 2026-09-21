@@ -1,0 +1,51 @@
+{
+  "_data_mode": "synthetic",
+  "policies": [
+    {
+      "version": "2026-01-01",
+      "effective_from": "2026-01-01",
+      "procedures": {
+        "72148": {
+          "label": "MRI lumbar spine without contrast",
+          "code_rule_id": "MRI-LS-CODE",
+          "accepted_diagnoses": ["M54.50", "M54.16"],
+          "required_documents": [
+            { "type": "referral", "label": "Referral from the treating physician", "rule_id": "MRI-LS-01" }
+          ]
+        },
+        "97110": {
+          "label": "Physiotherapy, therapeutic exercise",
+          "code_rule_id": "PT-CODE",
+          "accepted_diagnoses": ["M54.50", "M25.561"],
+          "required_documents": [
+            { "type": "referral", "label": "Referral from the treating physician", "rule_id": "PT-01" }
+          ]
+        }
+      }
+    },
+    {
+      "version": "2026-07-01",
+      "effective_from": "2026-07-01",
+      "procedures": {
+        "72148": {
+          "label": "MRI lumbar spine",
+          "code_rule_id": "MRI-LS-CODE",
+          "accepted_diagnoses": ["M54.50", "M54.16"],
+          "required_documents": [
+            { "type": "referral", "label": "Referral from the treating physician", "rule_id": "MRI-LS-01" },
+            { "type": "prior_conservative_treatment", "label": "Evidence of 6 weeks prior conservative treatment", "rule_id": "MRI-LS-02" }
+          ]
+        },
+        "97110": {
+          "label": "Physiotherapy, therapeutic exercise",
+          "code_rule_id": "PT-CODE",
+          "accepted_diagnoses": ["M54.50", "M25.561"],
+          "required_documents": [
+            { "type": "referral", "label": "Referral from the treating physician", "rule_id": "PT-01" },
+            { "type": "treatment_plan", "label": "Physiotherapy treatment plan", "rule_id": "PT-02" }
+          ]
+        }
+      }
+    }
+  ]
+}

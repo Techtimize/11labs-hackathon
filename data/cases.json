@@ -1,0 +1,175 @@
+{
+  "_data_mode": "synthetic",
+  "providers": {
+    "DHA-F-0001": {
+      "name": "Jumeirah Family Clinic",
+      "active": true
+    },
+    "DHA-F-0002": {
+      "name": "Al Barsha Medical Centre",
+      "active": true
+    },
+    "DHA-F-0099": {
+      "name": "Deira Polyclinic",
+      "active": false
+    }
+  },
+  "cases": [
+    {
+      "request_ref": "PA-2026-0001",
+      "provider_id": "DHA-F-0001",
+      "patient_token": "PT-A1",
+      "procedure_code": "72148",
+      "diagnosis_code": "M54.16",
+      "service_date": "2026-10-02",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-4410",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0002",
+      "provider_id": "DHA-F-0001",
+      "patient_token": "PT-A2",
+      "procedure_code": "72148",
+      "diagnosis_code": "J45.9",
+      "service_date": "2026-10-03",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-4411",
+          "source": "submitted"
+        },
+        {
+          "doc_type": "prior_conservative_treatment",
+          "doc_ref": "PCT-0902",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0003",
+      "provider_id": "DHA-F-0002",
+      "patient_token": "PT-B1",
+      "procedure_code": "97110",
+      "diagnosis_code": "M54.50",
+      "service_date": "2026-10-05",
+      "member_active": false,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-5120",
+          "source": "submitted"
+        },
+        {
+          "doc_type": "treatment_plan",
+          "doc_ref": "TP-5120",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0004",
+      "provider_id": "DHA-F-0002",
+      "patient_token": "PT-B2",
+      "procedure_code": "0232T",
+      "diagnosis_code": "M17.11",
+      "service_date": "2026-10-06",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-5121",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0005",
+      "provider_id": "DHA-F-0001",
+      "patient_token": "PT-A3",
+      "procedure_code": "72148",
+      "diagnosis_code": "M54.50",
+      "service_date": "2026-10-07",
+      "member_active": true,
+      "clinical_flag": true,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-4415",
+          "source": "submitted"
+        },
+        {
+          "doc_type": "prior_conservative_treatment",
+          "doc_ref": "PCT-1044",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0006",
+      "provider_id": "DHA-F-0001",
+      "patient_token": "PT-A4",
+      "procedure_code": "97110",
+      "diagnosis_code": "M54.50",
+      "service_date": "2026-10-08",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-4418",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0007",
+      "provider_id": "DHA-F-0002",
+      "patient_token": "PT-B3",
+      "procedure_code": "72148",
+      "diagnosis_code": "M54.50",
+      "service_date": "2026-06-15",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-5130",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0008",
+      "provider_id": "DHA-F-0099",
+      "patient_token": "PT-C1",
+      "procedure_code": "72148",
+      "diagnosis_code": "M54.50",
+      "service_date": "2026-10-09",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-9001",
+          "source": "submitted"
+        },
+        {
+          "doc_type": "prior_conservative_treatment",
+          "doc_ref": "PCT-9001",
+          "source": "submitted"
+        }
+      ]
+    }
+  ]
+}
