@@ -1,0 +1,194 @@
+{
+  "tools": [
+    {
+      "type": "webhook",
+      "name": "verify_session",
+      "description": "Verify the calling provider and bind this call to one pre-authorisation request. Call before any other tool.",
+      "api_schema": {
+        "url": "https://YOUR-HOST/tools/verify_session",
+        "method": "POST",
+        "request_headers": {
+          "Authorization": "Bearer {{secret:AGENT_TOOL_TOKEN}}"
+        },
+        "request_body_schema": {
+          "type": "object",
+          "properties": {
+            "provider_id": {
+              "type": "string",
+              "description": "Facility licence ID, e.g. DHA-F-0001"
+            },
+            "request_ref": {
+              "type": "string",
+              "description": "Pre-authorisation request reference, e.g. PA-2026-0001"
+            },
+            "conversation_id": {
+              "type": "string",
+              "description": "Set as dynamic variable {{system__conversation_id}}; never ask the caller."
+            }
+          },
+          "required": ["provider_id", "request_ref", "conversation_id"]
+        }
+      },
+      "response_timeout_secs": 5
+    },
+    {
+      "type": "webhook",
+      "name": "get_case_blockers",
+      "description": "Return what is preventing the verified request from being review-ready, with rule and policy version.",
+      "api_schema": {
+        "url": "https://YOUR-HOST/tools/get_case_blockers",
+        "method": "POST",
+        "request_headers": {
+          "Authorization": "Bearer {{secret:AGENT_TOOL_TOKEN}}"
+        },
+        "request_body_schema": {
+          "type": "object",
+          "properties": {
+            "request_ref": {
+              "type": "string",
+              "description": "Verified request reference"
+            },
+            "conversation_id": {
+              "type": "string",
+              "description": "Set as dynamic variable {{system__conversation_id}}; never ask the caller."
+            }
+          },
+          "required": ["request_ref", "conversation_id"]
+        }
+      },
+      "response_timeout_secs": 5
+    },
+    {
+      "type": "webhook",
+      "name": "record_evidence_reference",
+      "description": "Record the reference of a document the caller supplies on the call. References only; no document content is sent.",
+      "api_schema": {
+        "url": "https://YOUR-HOST/tools/record_evidence_reference",
+        "method": "POST",
+        "request_headers": {
+          "Authorization": "Bearer {{secret:AGENT_TOOL_TOKEN}}"
+        },
+        "request_body_schema": {
+          "type": "object",
+          "properties": {
+            "request_ref": {
+              "type": "string",
+              "description": "Verified request reference"
+            },
+            "doc_type": {
+              "type": "string",
+              "description": "The document type named by get_case_blockers, e.g. prior_conservative_treatment"
+            },
+            "doc_ref": {
+              "type": "string",
+              "description": "The reference the caller reads out, confirmed back to them first"
+            },
+            "conversation_id": {
+              "type": "string",
+              "description": "Set as dynamic variable {{system__conversation_id}}; never ask the caller."
+            }
+          },
+          "required": ["request_ref", "doc_type", "doc_ref", "conversation_id"]
+        }
+      },
+      "response_timeout_secs": 5
+    },
+    {
+      "type": "webhook",
+      "name": "recheck_case",
+      "description": "Re-run the completeness and rule checks after evidence was recorded, and return the updated state.",
+      "api_schema": {
+        "url": "https://YOUR-HOST/tools/recheck_case",
+        "method": "POST",
+        "request_headers": {
+          "Authorization": "Bearer {{secret:AGENT_TOOL_TOKEN}}"
+        },
+        "request_body_schema": {
+          "type": "object",
+          "properties": {
+            "request_ref": {
+              "type": "string",
+              "description": "Verified request reference"
+            },
+            "conversation_id": {
+              "type": "string",
+              "description": "Set as dynamic variable {{system__conversation_id}}; never ask the caller."
+            }
+          },
+          "required": ["request_ref", "conversation_id"]
+        }
+      },
+      "response_timeout_secs": 5
+    },
+    {
+      "type": "webhook",
+      "name": "send_to_review",
+      "description": "Place the case in the qualified reviewer's queue. This does not decide the request; a qualified employee does.",
+      "api_schema": {
+        "url": "https://YOUR-HOST/tools/send_to_review",
+        "method": "POST",
+        "request_headers": {
+          "Authorization": "Bearer {{secret:AGENT_TOOL_TOKEN}}"
+        },
+        "request_body_schema": {
+          "type": "object",
+          "properties": {
+            "request_ref": {
+              "type": "string",
+              "description": "Verified request reference"
+            },
+            "tier": {
+              "type": "string",
+              "description": "The tier from get_case_blockers or higher: tier_0_standard_review, tier_1_priority_review, tier_2_mandatory_human. A lower tier is raised back by the control plane."
+            },
+            "summary": {
+              "type": "string",
+              "description": "One or two sentences on what was resolved on the call"
+            },
+            "conversation_id": {
+              "type": "string",
+              "description": "Set as dynamic variable {{system__conversation_id}}; never ask the caller."
+            }
+          },
+          "required": ["request_ref", "tier", "summary", "conversation_id"]
+        }
+      },
+      "response_timeout_secs": 5
+    },
+    {
+      "type": "webhook",
+      "name": "transfer_to_human",
+      "description": "Pass the caller to a member of the team, or arrange a callback. A callback needs the caller's explicit consent.",
+      "api_schema": {
+        "url": "https://YOUR-HOST/tools/transfer_to_human",
+        "method": "POST",
+        "request_headers": {
+          "Authorization": "Bearer {{secret:AGENT_TOOL_TOKEN}}"
+        },
+        "request_body_schema": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "description": "Why the call is being transferred, e.g. caller asked for a human, clinical question"
+            },
+            "callback": {
+              "type": "boolean",
+              "description": "True when the caller wants to be called back instead of holding"
+            },
+            "consent": {
+              "type": "boolean",
+              "description": "True only when the caller has explicitly agreed to be called back"
+            },
+            "conversation_id": {
+              "type": "string",
+              "description": "Set as dynamic variable {{system__conversation_id}}; never ask the caller."
+            }
+          },
+          "required": ["reason", "conversation_id"]
+        }
+      },
+      "response_timeout_secs": 5
+    }
+  ]
+}
