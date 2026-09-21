@@ -1,0 +1,2 @@
+# Store text with LF endings so Windows and macOS checkouts produce identical diffs.
+* text=auto eol=lf

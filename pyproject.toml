@@ -1,0 +1,34 @@
+[project]
+name = "authrelay"
+version = "0.5.0"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "S", "RUF", "PTH", "ARG", "TRY"]
+# N818: BadSignature and NoPolicyForDate read better without an Error suffix.
+# UP042: Tier subclasses (str, Enum). Every use goes through Tier(...) or .value, so
+#        StrEnum would change nothing but the diff.
+# TRY003: one defensive RuntimeError guarding a database invariant does not warrant
+#         its own exception class.
+ignore = ["N818", "UP042", "TRY003"]
+
+[tool.ruff.lint.per-file-ignores]
+# S101: assert is the point of a test helper.
+# RUF001: the normalisation test needs real Arabic-Indic digits and en dashes.
+"tests/*" = ["S101", "RUF001"]
+# S105: these are error-code strings named *_TOKEN_*, not credentials.
+"errors/error_codes.py" = ["S105"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["main.py", "api", "core", "database", "dto", "errors", "integrations", "interfaces",
+         "mapper", "policies", "security", "services", "utils"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["error::ResourceWarning"]
