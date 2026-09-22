@@ -19,6 +19,19 @@ patient, provider or payer data is present. eClaimLink / DHPO and the insurer au
 platform are represented by adapters against local fixtures; they are never contacted. Responses
 carry an `X-Data-Mode: synthetic` header.
 
+## Screens
+
+**Provider call page** (`/`): where the clinic's approval executive starts the call. It shows what
+to have ready and the five steps the call follows.
+
+![Provider call page](docs/screenshots/call.png)
+
+**Reviewer queue** (`/review`): where a qualified person decides each case. Cases come ordered by
+tier with their open and resolved blockers, and the decision buttons stay locked until the call
+transcript is stored.
+
+![Reviewer queue](docs/screenshots/review.png)
+
 ## Layout
 
 ```
