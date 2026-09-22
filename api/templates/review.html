@@ -5,98 +5,258 @@
 <title>AuthRelay reviewer queue</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-  body{font-family:system-ui,sans-serif;max-width:960px;margin:32px auto;padding:0 16px}
-  table{border-collapse:collapse;width:100%}
-  td,th{border-bottom:1px solid #ddd;padding:8px;text-align:left;vertical-align:top}
-  .t2{color:#b3372d;font-weight:600}
+  :root{
+    --bg:#f5f7f8; --surface:#fff; --text:#15191e; --muted:#5d6672; --line:#e2e6ea;
+    --accent:#1d6b58; --accent-ink:#fff; --accent-soft:#e2f0eb;
+    --danger:#b3372d; --danger-soft:#fbe8e6; --warn:#8a5d00; --warn-soft:#fdf2d5;
+    --info:#2a55b8; --info-soft:#e7edfb;
+    --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.05),0 10px 30px rgba(16,24,40,.06);
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0e1114; --surface:#161a1f; --text:#e7eaee; --muted:#9aa3ae; --line:#262c33;
+    --accent:#3fb591; --accent-ink:#06130f; --accent-soft:#15302a;
+    --danger:#f0766c; --danger-soft:#3a1d1a; --warn:#e5b84b; --warn-soft:#332a10;
+    --info:#86a8ff; --info-soft:#1a2440; --shadow:none;
+  }}
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;
+       padding:14px 24px;border-bottom:1px solid var(--line);background:var(--surface)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:.2px}
+  .logo{width:26px;height:26px;border-radius:8px;background:var(--accent);position:relative}
+  .logo::after{content:"";position:absolute;inset:7px;border:2px solid var(--accent-ink);
+       border-radius:50%;border-right-color:transparent}
+  .brand small{font-weight:500;color:var(--muted)}
+  .badge{font-size:12px;padding:3px 10px;border-radius:999px;background:var(--warn-soft);color:var(--warn)}
+  .wrap{max-width:1040px;margin:0 auto;padding:32px 24px 48px}
+  .eyebrow{margin:0 0 6px;font-size:12px;font-weight:600;letter-spacing:.8px;
+           text-transform:uppercase;color:var(--accent)}
+  h1{margin:0 0 8px;font-size:28px;line-height:1.2}
+  .lead{margin:0 0 22px;color:var(--muted);max-width:640px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+        box-shadow:var(--shadow)}
+  .signin{display:grid;grid-template-columns:1.2fr 1fr auto;gap:12px;align-items:end;padding:18px 20px}
+  label{display:grid;gap:5px;font-size:13px;color:var(--muted)}
+  input{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);
+        border-radius:10px;padding:10px 12px}
+  input:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .btn{font:inherit;font-weight:600;border-radius:999px;padding:10px 20px;cursor:pointer;
+       border:1px solid transparent;white-space:nowrap}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.primary{background:var(--accent);color:var(--accent-ink)}
+  .btn.ghost{background:transparent;color:var(--text);border-color:var(--line)}
+  .btn.danger{background:transparent;color:var(--danger);border-color:var(--line)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+  .stat{padding:14px 18px}
+  .stat b{display:block;font-size:26px;line-height:1.1}
+  .stat span{font-size:13px;color:var(--muted)}
+  .rule{display:flex;gap:10px;align-items:center;margin:0 0 18px;padding:12px 16px;
+        border-radius:10px;background:var(--accent-soft);font-size:14px}
+  .rule b{color:var(--accent)}
+  .msg{min-height:22px;margin:0 0 10px;font-size:14px;color:var(--muted)}
+  .msg.ok{color:var(--accent)} .msg.err{color:var(--danger)}
+  .queue{display:grid;gap:14px}
+  .empty{padding:36px;text-align:center;color:var(--muted)}
+  .item{padding:20px 22px;display:grid;gap:14px}
+  .item.t2{border-left:4px solid var(--danger)}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .ref{font:600 15px var(--mono)}
+  .sub{font-size:13px;color:var(--muted)}
+  .tier{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .tier.t0{background:var(--accent-soft);color:var(--accent)}
+  .tier.t1{background:var(--warn-soft);color:var(--warn)}
+  .tier.t2{background:var(--danger-soft);color:var(--danger)}
+  .summary{margin:0}
+  .section-title{margin:0 0 6px;font-size:12px;font-weight:600;letter-spacing:.6px;
+                 text-transform:uppercase;color:var(--muted)}
+  .blockers{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+  .blockers li{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:14px}
+  .code{font-size:11px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:6px;
+        background:var(--info-soft);color:var(--info)}
+  .rid{font:12px var(--mono);color:var(--muted)}
+  .resolved li{color:var(--muted)}
+  .resolved .code{background:var(--accent-soft);color:var(--accent)}
+  .bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+          padding-top:14px;border-top:1px solid var(--line)}
+  .pill{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
+  .pill::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn)}
+  .pill.ready::before{background:var(--accent)}
+  .decide{display:flex;gap:8px;flex-wrap:wrap}
+  @media (max-width:760px){
+    .wrap{padding:20px 16px 36px}
+    h1{font-size:24px}
+    .signin{grid-template-columns:1fr}
+    .stats{grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .stat{padding:12px}
+    .stat b{font-size:22px}
+  }
 </style>
 </head>
 <body>
-<h1>Reviewer queue</h1>
-<p>
-  <label>Reviewer token <input id="tok" type="password"></label>
-  <label>Name <input id="who"></label>
-  <button id="load">Load queue</button>
-</p>
-<div id="msg"></div>
+<header class="bar">
+  <div class="brand"><span class="logo" aria-hidden="true"></span>AuthRelay <small>Reviewer</small></div>
+  <span class="badge">Synthetic demo</span>
+</header>
 
-<table>
-  <thead>
-    <tr><th>Review</th><th>Request</th><th>Tier</th><th>Summary and blockers</th><th>Transcript</th><th>Decision</th></tr>
-  </thead>
-  <tbody id="rows"></tbody>
-</table>
+<main class="wrap">
+  <p class="eyebrow">Human approval gate</p>
+  <h1>Reviewer queue</h1>
+  <p class="lead">Cases the voice agent has made review-ready. Every decision is made here, by a
+    qualified person. Clinical and ambiguous cases come first.</p>
+
+  <form id="signin" class="card signin">
+    <label>Reviewer token <input id="tok" type="password" autocomplete="off" required></label>
+    <label>Your name <input id="who" maxlength="120" placeholder="Recorded with each decision"></label>
+    <button class="btn primary" type="submit">Load queue</button>
+  </form>
+
+  <div id="stats" class="stats" hidden>
+    <div class="card stat"><b id="n-open">0</b><span>Waiting for a decision</span></div>
+    <div class="card stat"><b id="n-t2">0</b><span>Tier 2, clinical or ambiguous</span></div>
+    <div class="card stat"><b id="n-wait">0</b><span>Transcript not yet stored</span></div>
+  </div>
+
+  <p class="rule"><span><b>Decisions unlock once the call transcript is stored.</b>
+    The tier only sets priority; every tier is decided by a person.</span></p>
+
+  <div id="msg" class="msg" role="status" aria-live="polite"></div>
+  <div id="queue" class="queue">
+    <div class="card empty">Enter the reviewer token to load the queue.</div>
+  </div>
+</main>
 
 <script>
-const h = () => ({
-  "Authorization": "Bearer " + document.getElementById("tok").value,
+const $ = (id) => document.getElementById(id);
+const headers = () => ({
+  "Authorization": "Bearer " + $("tok").value,
   "Content-Type": "application/json",
 });
 
-// Rows are built with the DOM, never by string interpolation. The summary is written
-// by the agent from what a caller said, so treating it as markup would let a caller
-// run script on the page where the reviewer token is typed.
-function cell(row, text, className) {
-  const td = row.insertCell();
-  td.textContent = text;
-  if (className) td.className = className;
-  return td;
+const TIERS = {
+  tier_0_standard_review: ["t0", "Tier 0 · Standard review"],
+  tier_1_priority_review: ["t1", "Tier 1 · Priority review"],
+  tier_2_mandatory_human: ["t2", "Tier 2 · Mandatory human review"],
+};
+const CODES = {
+  MISSING_DOC: "Missing document", CODE_MISMATCH: "Code mismatch", ELIGIBILITY: "Eligibility",
+  POLICY_AMBIGUITY: "Policy ambiguity", CLINICAL: "Clinical",
+};
+
+// Everything is built with the DOM and textContent, never by joining strings into markup.
+// The summary is written by the agent from what a caller said, so treating it as markup
+// would let a caller run script on the page where the reviewer token is typed.
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
 }
 
-function decisionCell(row, item) {
-  const td = row.insertCell();
-  for (const d of ["approve", "deny", "request_more"]) {
-    const b = document.createElement("button");
-    b.textContent = d.replace("_", " ");
-    b.disabled = !item.transcript_ready;
-    b.addEventListener("click", () => decide(item.review_ref, d));
-    td.append(b, " ");
+function ago(seconds) {
+  const mins = Math.max(0, Math.round((Date.now() / 1000 - seconds) / 60));
+  if (mins < 1) return "just now";
+  if (mins < 60) return mins + " min ago";
+  const hours = Math.round(mins / 60);
+  return hours < 24 ? hours + " h ago" : Math.round(hours / 24) + " d ago";
+}
+
+function setMsg(text, kind) {
+  $("msg").textContent = text;
+  $("msg").className = "msg" + (kind ? " " + kind : "");
+}
+
+function blockerList(blockers, className) {
+  const ul = el("ul", "blockers" + (className ? " " + className : ""));
+  for (const b of blockers) {
+    const li = el("li");
+    li.append(el("span", "code", CODES[b.code] || b.code), el("span", "", b.detail),
+              el("span", "rid", b.rule_id));
+    ul.append(li);
   }
+  return ul;
+}
+
+function card(item) {
+  const rep = JSON.parse(item.report_json);
+  const [tierClass, tierLabel] = TIERS[item.tier] || ["t0", item.tier];
+  const open = rep.blockers || [];
+  const openIds = new Set(open.map((b) => b.rule_id));
+  const resolved = (rep.original_blockers || []).filter((b) => !openIds.has(b.rule_id));
+
+  const node = el("article", "card item" + (tierClass === "t2" ? " t2" : ""));
+
+  const top = el("div", "top");
+  const who = el("div");
+  who.append(el("div", "ref", item.review_ref),
+             el("div", "sub", `Request ${item.request_ref} · opened ${ago(item.created_at)}` +
+                              (rep.policy_version ? ` · policy ${rep.policy_version}` : "")));
+  top.append(who, el("span", "tier " + tierClass, tierLabel));
+  node.append(top, el("p", "summary", item.summary));
+
+  const blockersBox = el("div");
+  blockersBox.append(el("p", "section-title", "Open blockers"));
+  blockersBox.append(open.length ? blockerList(open) : el("div", "sub", "None open"));
+  node.append(blockersBox);
+
+  if (resolved.length) {
+    const box = el("div");
+    box.append(el("p", "section-title", "Resolved on the call"), blockerList(resolved, "resolved"));
+    node.append(box);
+  }
+  if ((rep.similar_cases || []).length) {
+    node.append(el("div", "sub", "Similar earlier cases: " + rep.similar_cases.join(", ")));
+  }
+
+  const bottom = el("div", "bottom");
+  bottom.append(el("span", "pill" + (item.transcript_ready ? " ready" : ""),
+                   item.transcript_ready ? "Call transcript stored" : "Waiting for the call transcript"));
+  const actions = el("div", "decide");
+  for (const [decision, label, style] of [["approve", "Approve", "primary"],
+                                          ["request_more", "Request more", "ghost"],
+                                          ["deny", "Deny", "danger"]]) {
+    const b = el("button", "btn " + style, label);
+    b.type = "button";
+    b.disabled = !item.transcript_ready;
+    if (!item.transcript_ready) b.title = "Available once the call transcript is stored";
+    b.addEventListener("click", () => decide(item.review_ref, decision, label));
+    actions.append(b);
+  }
+  bottom.append(actions);
+  node.append(bottom);
+  return node;
 }
 
 async function load() {
-  const r = await fetch("/review/queue", { headers: h() });
-  const tbody = document.getElementById("rows");
-  tbody.replaceChildren();
-  if (!r.ok) { document.getElementById("msg").textContent = "Token rejected."; return; }
-  const items = await r.json();
-
-  if (!items.length) {
-    const td = tbody.insertRow().insertCell();
-    td.colSpan = 6;
-    td.textContent = "No items waiting for review.";
+  const r = await fetch("/review/queue", { headers: headers() });
+  const queue = $("queue");
+  if (!r.ok) {
+    $("stats").hidden = true;
+    queue.replaceChildren(el("div", "card empty", "That token was not accepted."));
     return;
   }
-
-  for (const i of items) {
-    const rep = JSON.parse(i.report_json);
-    const row = tbody.insertRow();
-    cell(row, i.review_ref);
-    cell(row, i.request_ref);
-    cell(row, i.tier, i.tier.startsWith("tier_2") ? "t2" : "");
-
-    const summary = cell(row, i.summary);
-    const blockers = document.createElement("small");
-    blockers.textContent = rep.blockers.map(b => `${b.detail} [${b.rule_id}]`).join(" · ") || "None open";
-    summary.append(document.createElement("br"), blockers);
-
-    cell(row, i.transcript_ready ? "Stored" : "Waiting");
-    decisionCell(row, i);
-  }
+  const items = await r.json();
+  $("n-open").textContent = items.length;
+  $("n-t2").textContent = items.filter((i) => i.tier.startsWith("tier_2")).length;
+  $("n-wait").textContent = items.filter((i) => !i.transcript_ready).length;
+  $("stats").hidden = false;
+  queue.replaceChildren(...(items.length ? items.map(card)
+                                         : [el("div", "card empty", "No cases waiting for review.")]));
 }
 
-async function decide(ref, d) {
+async function decide(ref, decision, label) {
   const r = await fetch(`/review/${ref}/decision`, {
-    method: "POST", headers: h(),
-    body: JSON.stringify({ decision: d, reviewer: document.getElementById("who").value || "reviewer" }),
+    method: "POST", headers: headers(),
+    body: JSON.stringify({ decision, reviewer: $("who").value.trim() || "reviewer" }),
   });
-  document.getElementById("msg").textContent = r.ok
-    ? `Recorded ${d} for ${ref}.`
-    : `Not recorded: ${(await r.json()).detail}`;
+  if (r.ok) setMsg(`${label} recorded for ${ref}.`, "ok");
+  else setMsg(`Not recorded: ${(await r.json()).detail}`, "err");
   load();
 }
 
-document.getElementById("load").onclick = load;
+$("signin").addEventListener("submit", (e) => { e.preventDefault(); setMsg(""); load(); });
 </script>
 </body>
 </html>
