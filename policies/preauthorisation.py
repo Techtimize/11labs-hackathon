@@ -23,6 +23,7 @@ __all__ = [
     "Tier",
     "find_blockers",
     "required_doc_types",
+    "rules_in_force",
     "select_policy",
 ]
 
@@ -81,6 +82,34 @@ def find_blockers(case: dict, policies: list[dict]) -> BlockerReport:
                            suggested_tier=_tier_for(blockers, bool(case.get("clinical_flag"))))
     report.say = _say(report)
     return report
+
+
+RULE_TEXT = {
+    "ELG-01": "The member must be active on the service date.",
+    "CLN-01": "A request carrying a clinical flag is decided by a clinical reviewer.",
+    "GEN-00": "Only procedures listed in the schedule of benefits can be authorised.",
+}
+
+
+def rules_in_force(case: dict, policies: list[dict]) -> dict:
+    """The rules the case was checked against, as a reviewer would read them."""
+    policy = select_policy(policies, date.fromisoformat(case["service_date"]))
+    procedure = policy["procedures"].get(case["procedure_code"])
+    rules = []
+    if procedure:
+        for doc in procedure["required_documents"]:
+            rules.append({"rule_id": doc["rule_id"],
+                          "text": f"{procedure['label']} requires {doc['label'][0].lower()}"
+                                  f"{doc['label'][1:]}."})
+        rules.append({"rule_id": procedure["code_rule_id"],
+                      "text": f"{procedure['label']} is accepted for diagnoses "
+                              + ", ".join(procedure["accepted_diagnoses"]) + "."})
+    else:
+        rules.append({"rule_id": "GEN-00", "text": RULE_TEXT["GEN-00"]})
+    rules += [{"rule_id": rule_id, "text": RULE_TEXT[rule_id]} for rule_id in ("ELG-01", "CLN-01")]
+    return {"policy_version": policy["version"], "effective_from": policy["effective_from"],
+            "procedure_code": case["procedure_code"],
+            "procedure": procedure["label"] if procedure else None, "rules": rules}
 
 
 def required_doc_types(case: dict, policies: list[dict]) -> set[str]:

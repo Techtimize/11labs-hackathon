@@ -19,6 +19,18 @@ patient, provider or payer data is present. eClaimLink / DHPO and the insurer au
 platform are represented by adapters against local fixtures; they are never contacted. Responses
 carry an `X-Data-Mode: synthetic` header.
 
+## Architecture
+
+Three zones: the caller on a web page, the ElevenLabs platform that runs the conversation, and
+this control plane, which holds the rules, the case store and the audit log and contains no LLM.
+Every tier reaches a qualified employee; no tool, token or tier lets the agent issue a decision.
+
+![Technical architecture: caller, ElevenLabs platform, and the insurer control plane with the
+human approval gate](docs/screenshots/architecture.png)
+
+[ARCHITECTURE.md](ARCHITECTURE.md) walks through the same picture in words, including where each
+guardrail lives in the code.
+
 ## Screens
 
 **Provider call page** (`/`): where the clinic's approval executive starts the call. It shows what
@@ -26,11 +38,14 @@ to have ready and the five steps the call follows.
 
 ![Provider call page](docs/screenshots/call.png)
 
-**Reviewer queue** (`/review`): where a qualified person decides each case. Cases come ordered by
-tier with their open and resolved blockers, and the decision buttons stay locked until the call
+**Reviewer queue** (`/review`): every review across all clinics, searchable and filtered by tier or
+clinic, with a separate view of what has already been decided. Opening a case gives the whole
+record: why it is here, the rules it was judged against with the failed ones marked, the call
+transcript, and the audit trail of every tool call. The decision stays locked until the call
 transcript is stored.
 
-![Reviewer queue](docs/screenshots/review.png)
+![A case in the reviewer queue: blockers, rules applied, the call transcript and the decision
+bar](docs/screenshots/review.png)
 
 ## Layout
 
@@ -118,19 +133,19 @@ endpoints. `/` is the call page, `/review` the reviewer queue.
 ```bash
 ruff check .                                   # lint
 mypy                                           # types
-python -m unittest discover -s tests -t . -v   # 86 tests
+python -m unittest discover -s tests -t . -v   # 104 tests
 ```
 
 All three run in CI on every push.
 
 ## Status
 
-The control plane runs and its guardrails are tested: **86 tests**, lint and types clean.
+The control plane runs and its guardrails are tested: **104 tests**, lint and types clean.
 
 | Suite | Tests | Covers |
 |---|---|---|
 | `tests/unit/` | 10 | policies, normalisation, signatures, bearer check, rate limiter |
-| `tests/integration/` | 69 | every use case on a real SQLite store; HTTP, pages, webhook, page token |
+| `tests/integration/` | 87 | every use case on a real SQLite store; HTTP, pages, webhook, page token, reviewer session |
 | `tests/architecture/` | 7 | the layer rules in docs/project-structure.md |
 | Voice agent | none yet | configured on the ElevenLabs platform during the build sprint |
 

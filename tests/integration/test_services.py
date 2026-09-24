@@ -437,5 +437,101 @@ class SimilarCasesToleratesOldPackages(ServiceTest):
         self.assertNotIn("RV-LEGACY", out["similar_cases"])
 
 
+class QueueCarriesTheProvider(ServiceTest):
+    """A reviewer searches by the clinic that called, so the name travels with the item."""
+
+    def test_open_and_decided_items_name_the_facility(self):
+        s = self.store()
+        verified(s, "conv-prov", "DHA-F-0001", "PA-2026-0001")
+        ref = svc.send_to_review(s, "conv-prov", "PA-2026-0001", "tier_0_standard_review", "x")["review_ref"]
+        item = review_svc.pending_queue(s)[0]
+        self.assertEqual((item["provider_id"], item["provider"]),
+                         ("DHA-F-0001", "Jumeirah Family Clinic"))
+
+        s.save_transcript("conv-prov", {"transcript": []})
+        review_svc.decide(s, ref, "approve", "rev1")
+        self.assertEqual(review_svc.decided_history(s)[0]["provider"], "Jumeirah Family Clinic")
+
+
+class DecidedHistory(ServiceTest):
+    """A decided case leaves the queue, so the reviewer needs it back somewhere."""
+
+    def test_empty_until_something_is_decided(self):
+        s = self.store()
+        verified(s, "conv-hist", "DHA-F-0001", "PA-2026-0001")
+        svc.send_to_review(s, "conv-hist", "PA-2026-0001", "tier_0_standard_review", "x")
+        self.assertEqual(review_svc.decided_history(s), [])
+        self.assertEqual(len(review_svc.pending_queue(s)), 1)
+
+    def test_decided_case_moves_from_queue_to_history(self):
+        s = self.store()
+        verified(s, "conv-hist", "DHA-F-0001", "PA-2026-0001")
+        ref = svc.send_to_review(s, "conv-hist", "PA-2026-0001", "tier_0_standard_review", "x")["review_ref"]
+        s.save_transcript("conv-hist", {"transcript": []})
+        review_svc.decide(s, ref, "approve", "rev1")
+
+        self.assertEqual(review_svc.pending_queue(s), [])
+        history = review_svc.decided_history(s)
+        self.assertEqual([(h["review_ref"], h["decision"], h["decided_by"]) for h in history],
+                         [(ref, "approve", "rev1")])
+
+
+class RulesBehindAReviewItem(ServiceTest):
+    """A reviewer reads the policy the case was judged against, with its failures marked."""
+
+    def test_rules_name_the_policy_in_force_and_mark_what_failed(self):
+        s = self.store()
+        verified(s, "conv-rules", "DHA-F-0001", "PA-2026-0001")
+        ref = svc.send_to_review(s, "conv-rules", "PA-2026-0001", "tier_0_standard_review", "x")["review_ref"]
+
+        out = review_svc.rules_for(s, ref)
+        self.assertEqual((out["policy_version"], out["procedure_code"]), ("2026-07-01", "72148"))
+        cited = [r["rule_id"] for r in out["rules"] if r["cited"]]
+        self.assertEqual(cited, ["MRI-LS-02"])
+        self.assertIn("ELG-01", [r["rule_id"] for r in out["rules"]])
+        self.assertTrue(all(r["text"] for r in out["rules"]))
+
+    def test_a_procedure_outside_the_schedule_cites_the_general_rule(self):
+        s = self.store()
+        verified(s, "conv-gen", "DHA-F-0002", "PA-2026-0004")
+        ref = svc.send_to_review(s, "conv-gen", "PA-2026-0004", "tier_2_mandatory_human", "x")["review_ref"]
+        out = review_svc.rules_for(s, ref)
+        self.assertIsNone(out["procedure"])
+        self.assertEqual([r["rule_id"] for r in out["rules"] if r["cited"]], ["GEN-00"])
+
+    def test_unknown_review_ref_has_no_rules(self):
+        self.assertIsNone(review_svc.rules_for(self.store(), "RV-NOPE"))
+
+
+class TranscriptBehindAReviewItem(ServiceTest):
+    """A reviewer reads the call the decision rests on, and cannot decide before it lands."""
+
+    def _item(self, s):
+        verified(s, "conv-tr", "DHA-F-0001", "PA-2026-0001")
+        return svc.send_to_review(s, "conv-tr", "PA-2026-0001", "tier_0_standard_review", "x")["review_ref"]
+
+    def test_unknown_review_ref_has_no_transcript(self):
+        self.assertIsNone(review_svc.transcript_for(self.store(), "RV-NOPE"))
+
+    def test_waiting_before_the_webhook_arrives(self):
+        s = self.store()
+        out = review_svc.transcript_for(s, self._item(s))
+        self.assertEqual((out["stored"], out["turns"]), (False, []))
+
+    def test_turns_are_returned_once_stored(self):
+        s = self.store()
+        ref = self._item(s)
+        s.save_transcript("conv-tr", {"data": {"transcript": [
+            {"role": "agent", "message": "This call is recorded.", "time_in_call_secs": 2},
+            {"role": "user", "message": "My request is stuck.", "time_in_call_secs": 9},
+            {"role": "agent", "message": None},
+            "not a turn",
+        ]}})
+        out = review_svc.transcript_for(s, ref)
+        self.assertTrue(out["stored"])
+        self.assertEqual([(t["speaker"], t["text"], t["at"]) for t in out["turns"]],
+                         [("agent", "This call is recorded.", 2), ("caller", "My request is stuck.", 9)])
+
+
 if __name__ == "__main__":
     unittest.main()

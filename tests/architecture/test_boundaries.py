@@ -34,7 +34,7 @@ ALLOWED: dict[str, set[str]] = {
     "interfaces": {"interfaces", "dto"},
     "database": {"database", "interfaces", "dto"},
     "integrations": {"interfaces", "dto", "core"},
-    "security": {"core", "errors"},
+    "security": {"security", "core", "errors"},
     "errors": {"errors"},
     "core": {"core"},
     "utils": set(),
