@@ -36,7 +36,8 @@ guardrail lives in the code.
 **Provider call page** (`/`): where the clinic's approval executive starts the call. It shows what
 to have ready and the five steps the call follows.
 
-![Provider call page](docs/screenshots/call.png)
+![Provider call page: what to have ready, the language choice and the five call
+steps](docs/screenshots/call-page.png)
 
 **Reviewer queue** (`/review`): every review across all clinics, searchable and filtered by tier or
 clinic, with a separate view of what has already been decided. Opening a case gives the whole
@@ -45,7 +46,7 @@ transcript, and the audit trail of every tool call. The decision stays locked un
 transcript is stored.
 
 ![A case in the reviewer queue: blockers, rules applied, the call transcript and the decision
-bar](docs/screenshots/review.png)
+bar](docs/screenshots/reviewer-case.png)
 
 ## Layout
 
