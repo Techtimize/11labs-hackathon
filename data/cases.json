@@ -12,6 +12,14 @@
     "DHA-F-0099": {
       "name": "Deira Polyclinic",
       "active": false
+    },
+    "DHA-F-0003": {
+      "name": "Mirdif Day Surgery Centre",
+      "active": true
+    },
+    "DHA-F-0004": {
+      "name": "Al Quoz Rehabilitation Centre",
+      "active": true
     }
   },
   "cases": [
@@ -167,6 +175,191 @@
         {
           "doc_type": "prior_conservative_treatment",
           "doc_ref": "PCT-9001",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0009",
+      "provider_id": "DHA-F-0003",
+      "patient_token": "PT-D1",
+      "procedure_code": "72148",
+      "diagnosis_code": "M54.50",
+      "service_date": "2026-10-10",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-7701",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0010",
+      "provider_id": "DHA-F-0003",
+      "patient_token": "PT-D2",
+      "procedure_code": "97110",
+      "diagnosis_code": "M25.561",
+      "service_date": "2026-10-11",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-7702",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0011",
+      "provider_id": "DHA-F-0004",
+      "patient_token": "PT-E1",
+      "procedure_code": "97110",
+      "diagnosis_code": "M79.3",
+      "service_date": "2026-10-12",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-8810",
+          "source": "submitted"
+        },
+        {
+          "doc_type": "treatment_plan",
+          "doc_ref": "TP-8810",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0012",
+      "provider_id": "DHA-F-0004",
+      "patient_token": "PT-E2",
+      "procedure_code": "72148",
+      "diagnosis_code": "M54.16",
+      "service_date": "2026-10-13",
+      "member_active": false,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-8811",
+          "source": "submitted"
+        },
+        {
+          "doc_type": "prior_conservative_treatment",
+          "doc_ref": "PCT-8811",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0013",
+      "provider_id": "DHA-F-0003",
+      "patient_token": "PT-D3",
+      "procedure_code": "27447",
+      "diagnosis_code": "M17.11",
+      "service_date": "2026-10-14",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-7703",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0014",
+      "provider_id": "DHA-F-0004",
+      "patient_token": "PT-E3",
+      "procedure_code": "72148",
+      "diagnosis_code": "M54.50",
+      "service_date": "2026-10-15",
+      "member_active": true,
+      "clinical_flag": true,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-8812",
+          "source": "submitted"
+        },
+        {
+          "doc_type": "prior_conservative_treatment",
+          "doc_ref": "PCT-8812",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0015",
+      "provider_id": "DHA-F-0002",
+      "patient_token": "PT-B4",
+      "procedure_code": "97110",
+      "diagnosis_code": "M54.50",
+      "service_date": "2026-06-20",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-5140",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0016",
+      "provider_id": "DHA-F-0001",
+      "patient_token": "PT-A5",
+      "procedure_code": "72148",
+      "diagnosis_code": "J45.9",
+      "service_date": "2026-10-16",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-4420",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0017",
+      "provider_id": "DHA-F-0003",
+      "patient_token": "PT-D4",
+      "procedure_code": "97110",
+      "diagnosis_code": "M54.50",
+      "service_date": "2026-10-17",
+      "member_active": false,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-7704",
+          "source": "submitted"
+        }
+      ]
+    },
+    {
+      "request_ref": "PA-2026-0018",
+      "provider_id": "DHA-F-0004",
+      "patient_token": "PT-E4",
+      "procedure_code": "0232T",
+      "diagnosis_code": "M17.11",
+      "service_date": "2026-10-18",
+      "member_active": true,
+      "clinical_flag": false,
+      "documents": [
+        {
+          "doc_type": "referral",
+          "doc_ref": "REF-8813",
           "source": "submitted"
         }
       ]
