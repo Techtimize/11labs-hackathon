@@ -2,6 +2,9 @@
 
 Synthetic data only.
 
+![Technical architecture: caller, ElevenLabs platform, and the insurer control plane with the
+human approval gate](docs/screenshots/architecture.png)
+
 ## The problem
 
 A clinic submits a pre-authorisation request through eClaimLink. It stalls, usually because a
