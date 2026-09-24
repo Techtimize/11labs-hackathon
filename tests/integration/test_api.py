@@ -289,6 +289,100 @@ class ReviewerFieldsAreBounded(ApiTest):
         self.assertEqual(r.status_code, 422)
 
 
+class HistoryEndpoint(ApiTest):
+    def test_agent_token_is_refused(self):
+        self.assertEqual(self.client.get("/review/history", headers=AGENT).status_code, 401)
+
+    def test_decided_case_appears_with_its_reviewer(self):
+        conv = "conv-api-hist"
+        self.agent_post("/tools/verify_session", {"conversation_id": conv, "provider_id": "DHA-F-0001",
+                                                  "request_ref": "PA-2026-0001"})
+        ref = self.agent_post("/tools/send_to_review", {
+            "conversation_id": conv, "request_ref": "PA-2026-0001",
+            "tier": "tier_0_standard_review", "summary": "x"}).json()["review_ref"]
+        self.assertEqual(self.client.get("/review/history", headers=REVIEWER).json(), [])
+
+        body = json.dumps({"data": {"conversation_id": conv}}).encode()
+        self.client.post("/webhooks/elevenlabs/post-call", content=body, headers=signed(body))
+        self.client.post(f"/review/{ref}/decision", headers=REVIEWER,
+                         json={"decision": "deny", "reviewer": "rev9"})
+
+        history = self.client.get("/review/history", headers=REVIEWER).json()
+        self.assertEqual([(h["review_ref"], h["decision"], h["decided_by"]) for h in history],
+                         [(ref, "deny", "rev9")])
+        self.assertEqual(self.client.get("/review/queue", headers=REVIEWER).json(), [])
+
+
+class ReviewerSession(ApiTest):
+    """Opening the page starts the session, so the queue is there without typing a token."""
+
+    def test_the_queue_is_closed_until_the_page_is_opened(self):
+        self.assertEqual(self.client.get("/review/queue").status_code, 401)
+
+        page = self.client.get("/review")
+        cookie = page.headers["set-cookie"]
+        self.assertIn("HttpOnly", cookie)
+        self.assertIn("SameSite=strict", cookie.replace("samesite", "SameSite"))
+        self.assertEqual(self.client.get("/review/queue").status_code, 200)
+
+    def test_the_agent_token_is_still_refused(self):
+        self.client.cookies.clear()
+        self.assertEqual(self.client.get("/review/queue", headers=AGENT).status_code, 401)
+
+    def test_a_forged_cookie_is_refused(self):
+        self.client.cookies.clear()
+        self.client.cookies.set("authrelay_reviewer", "9999999999.UmV2aWV3ZXI=.deadbeef")
+        self.assertEqual(self.client.get("/review/queue").status_code, 401)
+        self.client.cookies.clear()
+
+
+class RulesEndpoint(ApiTest):
+    def test_reviewer_only_and_cites_the_failed_rule(self):
+        conv = "conv-api-rules"
+        self.agent_post("/tools/verify_session", {"conversation_id": conv, "provider_id": "DHA-F-0001",
+                                                  "request_ref": "PA-2026-0001"})
+        ref = self.agent_post("/tools/send_to_review", {
+            "conversation_id": conv, "request_ref": "PA-2026-0001",
+            "tier": "tier_0_standard_review", "summary": "x"}).json()["review_ref"]
+
+        self.assertEqual(self.client.get(f"/review/{ref}/rules", headers=AGENT).status_code, 401)
+        self.assertEqual(self.client.get("/review/RV-DEADBEEF/rules", headers=REVIEWER).status_code, 404)
+
+        out = self.client.get(f"/review/{ref}/rules", headers=REVIEWER).json()
+        self.assertEqual(out["policy_version"], "2026-07-01")
+        self.assertEqual([r["rule_id"] for r in out["rules"] if r["cited"]], ["MRI-LS-02"])
+
+
+class TranscriptEndpoint(ApiTest):
+    def _item(self, conv="conv-api-tr"):
+        self.agent_post("/tools/verify_session", {"conversation_id": conv, "provider_id": "DHA-F-0001",
+                                                  "request_ref": "PA-2026-0001"})
+        return conv, self.agent_post("/tools/send_to_review", {
+            "conversation_id": conv, "request_ref": "PA-2026-0001",
+            "tier": "tier_0_standard_review", "summary": "x"}).json()["review_ref"]
+
+    def test_agent_token_cannot_read_a_transcript(self):
+        _, ref = self._item()
+        self.assertEqual(self.client.get(f"/review/{ref}/transcript", headers=AGENT).status_code, 401)
+
+    def test_unknown_review_ref_is_404(self):
+        self.assertEqual(self.client.get("/review/RV-DEADBEEF/transcript",
+                                         headers=REVIEWER).status_code, 404)
+
+    def test_turns_are_served_after_the_webhook(self):
+        conv, ref = self._item()
+        waiting = self.client.get(f"/review/{ref}/transcript", headers=REVIEWER).json()
+        self.assertEqual((waiting["stored"], waiting["turns"]), (False, []))
+
+        body = json.dumps({"data": {"conversation_id": conv, "transcript": [
+            {"role": "agent", "message": "This call is recorded.", "time_in_call_secs": 2}]}}).encode()
+        self.client.post("/webhooks/elevenlabs/post-call", content=body, headers=signed(body))
+
+        stored = self.client.get(f"/review/{ref}/transcript", headers=REVIEWER).json()
+        self.assertTrue(stored["stored"])
+        self.assertEqual(stored["turns"], [{"speaker": "agent", "text": "This call is recorded.", "at": 2}])
+
+
 class ReviewerPageDoesNotInterpolateHtml(ApiTest):
     def test_the_queue_is_built_with_the_dom(self):
         page = self.client.get("/review").text

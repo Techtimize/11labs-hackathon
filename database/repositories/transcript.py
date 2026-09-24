@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 import time
 
 from ..connection import Database
@@ -17,6 +18,14 @@ class SqliteTranscriptRepository:
                                               (conversation_id, json.dumps(body), time.time()))
             self._db.connection.commit()
             return cur.rowcount == 1  # False = duplicate delivery
+
+    def transcript(self, conversation_id: str | None) -> sqlite3.Row | None:
+        if not conversation_id:
+            return None
+        with self._db.lock:
+            return self._db.connection.execute(
+                "SELECT conversation_id, body_json, received_at FROM transcript WHERE conversation_id=?",
+                (conversation_id,)).fetchone()
 
     def has_transcript(self, conversation_id: str | None) -> bool:
         if not conversation_id:

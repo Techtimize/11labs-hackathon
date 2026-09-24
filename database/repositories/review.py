@@ -56,6 +56,13 @@ class SqliteReviewRepository:
                 "ORDER BY CASE tier WHEN 'tier_2_mandatory_human' THEN 0 "
                 "WHEN 'tier_1_priority_review' THEN 1 ELSE 2 END, created_at").fetchall()
 
+    def decided(self, limit: int = 50) -> list[sqlite3.Row]:
+        """Cases a reviewer has already settled, most recent first."""
+        with self._db.lock:
+            return self._db.connection.execute(
+                "SELECT * FROM review_item WHERE decision IS NOT NULL "
+                "ORDER BY decided_at DESC LIMIT ?", (limit,)).fetchall()
+
     def decide(self, review_ref: str, decision: str, reviewer: str) -> bool:
         """Claim an undecided item. False means someone else decided it first."""
         with self._db.lock:

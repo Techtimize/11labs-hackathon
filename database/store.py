@@ -95,12 +95,19 @@ class Store:
     def queue(self) -> list[sqlite3.Row]:
         return self.reviews.queue()
 
+    def decided(self, limit: int = 50) -> list[sqlite3.Row]:
+        return self.reviews.decided(limit)
+
+
     def decide(self, review_ref: str, decision: str, reviewer: str) -> bool:
         return self.reviews.decide(review_ref, decision, reviewer)
 
     # transcripts ---------------------------------------------------------
     def save_transcript(self, conversation_id: str, body: dict) -> bool:
         return self.transcripts.save_transcript(conversation_id, body)
+
+    def transcript(self, conversation_id: str | None) -> sqlite3.Row | None:
+        return self.transcripts.transcript(conversation_id)
 
     def has_transcript(self, conversation_id: str | None) -> bool:
         return self.transcripts.has_transcript(conversation_id)
@@ -111,3 +118,4 @@ class Store:
 
     def audit_for(self, request_ref: str) -> list[sqlite3.Row]:
         return self.audit_log.audit_for(request_ref)
+
